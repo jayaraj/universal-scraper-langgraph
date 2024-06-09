@@ -1,14 +1,15 @@
-from typing import Any, List
 from graph import workflow
-from tools.jinaai import scrape
-from tools.firecrawl import update_data
+from typing import Any, List
+from tools.custom import UpdateDataTool
+from tools.jinaai import ScrapeTool
 from langgraph.prebuilt.tool_executor import ToolExecutor
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
-def website_scrap(llm, model: str, website: str, entity_name: str, data_points_to_search: List[str], links_already_scraped: List[str]) -> (dict[str, Any] | Any):
-    
-  tools = [scrape, update_data]
+def website_scrap(llm, model: str, links: List[str], entity_name: str, data_points_to_search: List[str], links_already_scraped: List[str]) -> (dict[str, Any] | Any):
+  scrape = ScrapeTool()
+  update = UpdateDataTool(data_points_to_search)
+  tools = [scrape, update]
   llm = llm.bind(tools=[convert_to_openai_tool(tool) for tool in tools])
   tool_executor = ToolExecutor(tools)
 
@@ -32,7 +33,7 @@ def website_scrap(llm, model: str, website: str, entity_name: str, data_points_t
   """)
 
   web_scrape = HumanMessage(content=f"""
-    Website to scrape: {website}
+    Website urls to scrape: {links}
 
     Entity name: {entity_name}
 
@@ -48,8 +49,9 @@ def website_scrap(llm, model: str, website: str, entity_name: str, data_points_t
             "data_points": [{"name": dp, "value": None, "reference": None} for dp in data_points_to_search],
             "links_already_scraped": links_already_scraped}
   config = {"recursion_limit": 30}
+  app.invoke(inputs,config=config)
 
-  return app.invoke(inputs,config=config)
+  return {"data_points": update.get_data_points(), "links_already_scraped": scrape.get_links_already_scraped()}
 
 
   

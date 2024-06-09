@@ -1,13 +1,16 @@
 from typing import Any, List
 from graph import workflow
-from tools.firecrawl import update_data, search
+from tools.firecrawl import SearchTool
+from tools.custom import UpdateDataTool
 from langgraph.prebuilt.tool_executor import ToolExecutor
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
+
 def internet_search(llm, model: str, entity_name: str, data_points_to_search: List[str]) -> (dict[str, Any] | Any):
-    
-  tools = [search, update_data]
+  search = SearchTool(llm, entity_name, data_points_to_search)
+  update = UpdateDataTool(data_points_to_search)
+  tools = [search, update]
   llm = llm.bind(tools=[convert_to_openai_tool(tool) for tool in tools])
   tool_executor = ToolExecutor(tools)
 
@@ -18,6 +21,7 @@ def internet_search(llm, model: str, entity_name: str, data_points_to_search: Li
     You will keep scraping url based on information you received until information is found;
 
     You will try as hard as possible to search for all sorts of different query & source to find information; 
+    You will make sure the information is accurate and up to date or latest information;
     if one search query didn't return any result, try another one; 
     You do not stop until all information are found, it is very important we find all information, I will give you $100, 000 tip if you find all information;
     Whenever you found certain data point, use "update_data" function to save the data point;
@@ -41,5 +45,6 @@ def internet_search(llm, model: str, entity_name: str, data_points_to_search: Li
             "data_points": [{"name": dp, "value": None, "reference": None} for dp in data_points_to_search],
             "links_already_scraped": []}
   config = {"recursion_limit": 30}
+  app.invoke(inputs,config=config)
 
-  return app.invoke(inputs,config=config)
+  return {"data_points": update.get_data_points()}

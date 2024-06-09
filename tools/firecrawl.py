@@ -1,62 +1,148 @@
-
+from typing import List
+from termcolor import colored
 from dotenv import load_dotenv
+from typing import Optional, Type
 from firecrawl import FirecrawlApp
-from langchain.tools import tool
 from tools.utils import ToolResponse
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import BaseTool
+from langchain_core.messages import HumanMessage
+from langchain.pydantic_v1 import BaseModel, Field
+from langchain_core.callbacks import CallbackManagerForToolRun
 
 load_dotenv()
 
-@tool("scrape", return_direct=True)
-def scrape(url: str) -> ToolResponse:
+class ScrapeInput(BaseModel):
+  url: str = Field(description="""The URL to scrape.""")
+
+class ScrapeTool(BaseTool):
+  name = "scrape"
+  description = """
+    Scrapes content from a specified URL using FirecrawlApp.
+    Args:
+        url (str): The URL to scrape.
+    Returns:
+        ToolResponse: The scraped content in markdown format, or an error message if scraping fails.
   """
-  Scrapes content from a specified URL using FirecrawlApp.
-  Args:
-      url (str): The URL to scrape.
+  args_schema: Type[BaseModel] = ScrapeInput
+  return_direct: Type[BaseModel] = ToolResponse
+  links_already_scraped: list[str] = []
 
-  Returns:
-      ToolResponse: The scraped content in markdown format, or an error message if scraping fails.
-  """
-  try:
-    app = FirecrawlApp()
-    scraped_data = app.scrape_url(url)
-  except Exception as e:
-    return ToolResponse(result="", context={"error": f"unable to scrape the URL: {url}, error: {e}"})
+  def __init__(self):
+    super().__init__()
+    self.links_already_scraped =  []
 
-  return ToolResponse(result=str(scraped_data.get("markdown", "")), context={"url": url})
-
-@tool("search", return_direct=True)
-def search(query, entity_name, data_points_to_search) -> ToolResponse:
-  """
-  Searches for information related to a specific entity using FirecrawlApp.
-
-  Args:
-      query (str): The search query.
-      entity_name (str): The name of the entity to search for.
-      data_points_to_search (list): The list of data points to search for in the content.
-
-  Returns:
-      ToolResponse: The search results, or an error message if the search fails.
-  """
-  params = {"pageOptions": {"fetchPageContent": True}}
-  try:
-    app = FirecrawlApp()
-    search_result = app.search(query, params=params)
-    result = str(search_result)
-  except Exception as e:
-    return ToolResponse(result="", context={"error": f"unable to search the {query}, error: {e}"})
-  
-  return ToolResponse(result=str(result), context={"query": query, "entity_name": entity_name, "data_points_to_search": data_points_to_search})
-
-@tool("update_data", return_direct=True)
-def update_data (data_to_update) -> ToolResponse:
+  def _run(self, url: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> ToolResponse:
     """
-    Update the state with new data points found.
+    Scrapes content from a specified URL using FirecrawlApp.
+    """
+
+    ### Skippping scraping if the url is already scraped
+    if url in self.links_already_scraped:
+      return ToolResponse(result="", context={"error": f"this url: {url} is already scraped; please use different relevant url from the content scraped before."})
+
+    try:
+      app = FirecrawlApp()
+      scraped_data = app.scrape_url(url)
+    except Exception as e:
+      return ToolResponse(result="", context={"error": f"unable to scrape the URL: {url}, error: {e}"})
+
+    self.links_already_scraped.append(url)
+    return ToolResponse(result=str(scraped_data.get("markdown", "")), context={})
+  
+  def get_links_already_scraped(self):
+    return self.links_already_scraped
+
+class SearchInput(BaseModel):
+  query: str = Field(description="""The search query.""")
+
+class SearchTool(BaseTool):
+  name = "search"
+  description = """
+    Searches for information related to a specific entity using FirecrawlApp.
+    Args:
+        query (str): The search query.
+    Returns:
+        ToolResponse: The search results, or an error message if the search fails.
+  """
+  args_schema: Type[BaseModel] = SearchInput
+  return_direct: Type[BaseModel] = ToolResponse
+  llm: ChatOpenAI = None
+  entity_name: str = ""
+  data_points_to_search: List[str] = []
+
+  def __init__(self, llm, entity_name: str, data_points_to_search: List[str] = []):
+    super().__init__()
+    self.llm = llm
+    self.entity_name = entity_name
+    self.data_points_to_search = data_points_to_search
+
+  def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> ToolResponse:
+    """
+    Searches for information related to a specific entity using FirecrawlApp.
+    """
+    params = {"pageOptions": {"fetchPageContent": True}}
+    result = ""
+    try:
+      app = FirecrawlApp()
+      search_result = app.search(query, params=params)
+      result = str(search_result)
+    except Exception as e:
+      return ToolResponse(result="", context={"error": f"unable to search the {query}, error: {e}"})
+    
+    return self.extract_search_information(query, result)
+  
+  def extract_search_information(self, query, content: str) -> ToolResponse:
+    """
+    Extracts search information from the content based on the specified data points to search.
 
     Args:
-        data_to_update (List[dict]): The new data points found, which should follow the format 
-        [{"name": "xxx", "value": "yyy", "reference": "url"}]
-
+        content (str): The content to extract information from.
     Returns:
-        ToolResponse: A confirmation message with the updated data, or an error message if the update fails.
+        ToolResponse: The extracted search information, or an error message if the extraction fails.
     """
-    return ToolResponse(result=f"updated data: {data_to_update}", context={"data_to_update": data_to_update})
+
+    message = HumanMessage(content=f"""
+      Below are some search results from the internet about {query}:
+      {content}
+      -----
+        
+      Your goal is to find specific information about an entity called {self.entity_name} regarding {self.data_points_to_search}.
+
+      Please extract information from the search results above in the following JSON format:
+      {{
+          "related_urls_to_scrape_further": ["url1", "url2", "url3"],
+          "info_found": [
+              {{
+                  "research_item": "xxxx",
+                  "reference": "url"
+              }},
+              {{
+                  "research_item": "yyyy",
+                  "reference": "url"
+              }}
+              ...
+          ]
+      }}
+
+      Where "research_item" is the actual research item name you are looking for.
+
+      Only return research items that you actually found.
+      If no research item information is found from the content provided, just don't return any research item.
+
+      Extracted JSON:
+      {{
+          "related_urls_to_scrape_further": [],
+          "info_found": []
+      }}
+    """)
+
+    extracted_information = ""
+    try:
+      response = self.llm.invoke([message])
+      extracted_information = response.content
+    except Exception as e:
+      print(colored(f"error while extracting information: {e}", "red"))
+      return ToolResponse(result="", context={"error": f"error while extracting information: {e}"})
+
+    return ToolResponse(result=str(extracted_information), context={}) 

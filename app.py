@@ -5,15 +5,15 @@ from websitescrap import website_scrap
 
 load_dotenv()
 # GPT_MODEL = "gpt-4o"
-GPT_MODEL = "gpt-3.5-turbo-1106"
+GPT_MODEL = "gpt-3.5-turbo"
 
 llm = ChatOpenAI(model=GPT_MODEL, temperature=0, streaming=True)
 
-data_points = ["company_name", "company_description", "company_address", "company_phone", "company_email", "company_website"]
-entity_name = "Post Qode"
-website = "https://postqode.ai"
+data_points = ["company_name", "company_description", "company_address", "company_phone", "company_email", "company_website", "company_founders"]
+entity_name = "AEOS LABS LTD"
+links = ["https://labs.aeoscompany.com"]
 
-website_scrap_output = website_scrap(llm, GPT_MODEL, website, entity_name, data_points, [] )
+website_scrap_output = website_scrap(llm, GPT_MODEL, links, entity_name, data_points, [] )
 data_points_to_search = [obj["name"] for obj in website_scrap_output["data_points"] if obj ["value"] is None]
 internet_search_output = internet_search(llm, GPT_MODEL, entity_name, data_points_to_search)
 
