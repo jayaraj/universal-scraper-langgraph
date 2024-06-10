@@ -33,6 +33,8 @@ class UpdateDataTool(BaseTool):
       Update the state with new data points found.
       """
       for obj in data_to_update:
+          if obj["name"] not in [dp["name"] for dp in self.data_points]:
+             return ToolResponse(result="", context={"error": f"""{obj["name"]}  is not part of data_points_to_search : {[dp["name"] for dp in self.data_points]}, Please update with correct data points"""})
           for dp in self.data_points:
               if dp['name'] == obj['name'] and dp['value'] is None:
                   dp["value"] = obj["value"]

@@ -16,6 +16,7 @@ langchain = "^0.2.2"
 langchain-openai = "^0.1.8"
 langgraph = "^0.0.64"
 langchain-experimental = "^0.0.60"
+pandas = "^2.2.2"
 
 [toot.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md

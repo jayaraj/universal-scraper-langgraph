@@ -39,7 +39,7 @@ def call_tool(state, tool_executor):
     content = response.result
     if "error" in response.context:
       print(colored(f"""error: {response.context["error"]}""", "red"))
-      content = response.context["error"]
+      content = f"""error: {response.context["error"]}"""
 
     tool_messages.append(ToolMessage(content=str(content), name=action.tool, tool_call_id=tool_call["id"]))
 
@@ -61,7 +61,7 @@ def optimise_messages(state, llm, model):
         latest_messages = latest_messages[1:]
       else:
         break
-        
+
     index = messages.index(latest_messages[0])
     early_messages = messages[:index]
 

@@ -1,24 +1,41 @@
+import argparse
+from termcolor import colored
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from internetsearch import internet_search
-from websitescrap import website_scrap
+import pandas as pd
 
-load_dotenv()
-# GPT_MODEL = "gpt-4o"
-GPT_MODEL = "gpt-3.5-turbo"
+def get_filename():
+  parser = argparse.ArgumentParser(description='read arguments')
+  parser.add_argument('-f', '--file', type=str, help='input file name')
+  
+  args = parser.parse_args()
+  if args.file:
+    return args.file
+  else:
+    return input("Please enter the filename: ")
 
-llm = ChatOpenAI(model=GPT_MODEL, temperature=0, streaming=True)
+def main():
+  load_dotenv()
+  # GPT_MODEL = "gpt-4o"
+  GPT_MODEL = "gpt-3.5-turbo"
+  data_points = ["name", "description", "address", "phone", "company_email", "website", "founders"]
+  llm = ChatOpenAI(model=GPT_MODEL, temperature=0, streaming=True)
 
-data_points = ["name", "description", "address", "phone", "company_email", "website", "founders"]
-entity_name = "AEOS Labs Ltd India"
-# links = ["https://labs.aeoscompany.com/"]
+  filename = get_filename()
+  try:
+    df = pd.read_csv(filename, header = 0)
+    output_df = pd.DataFrame(columns=data_points)
+    for _, row in df.iterrows():
+      output = internet_search(llm, GPT_MODEL, row['Entity'], data_points)
+      row_data = {}
+      for dp in output["data_points"]:
+        row_data[dp["name"]] = dp["value"]
+      output_df = pd.concat([output_df, pd.DataFrame([row_data])], ignore_index=True) 
+    output_df.to_csv('./output.csv')
+  except Exception as e:
+      print(colored(f"error while processing file: {e}", "red"))
+      return
 
-output = internet_search(llm, GPT_MODEL, entity_name, data_points)
-# data_points_to_search = [obj["name"] for obj in internet_search_output["data_points"] if obj ["value"] is None]
-# website_scrap_output = website_scrap(llm, GPT_MODEL, links, entity_name, internet_search_output, [] )
-
-print("########################################")
-print("Data points:")
-for dp in output["data_points"]:
-  print(f"{dp}")
-print("########################################")
+if __name__ == "__main__":
+  main()

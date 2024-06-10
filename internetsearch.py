@@ -57,6 +57,7 @@ def internet_search(llm, model: str, entity_name: str, data_points_to_search: Li
 	      * Ensure the data_to_update dicts correspond accurately to the data points specified in the data_points_to_search list.
 	      * Verify the accuracy of each data point before updating.
 	      * Immediately use the update_data tool with data_to_update containing the necessary information before proceeding to the next URL.
+        * If you find any tool response with error, please try to find the right information and update the data points.                         
 	    4.Efficiency:
 	      * You will not scrape a URL more than once, even if the information is not found.
 	      * Do not ask the user for inputs or permissions; proceed autonomously to gather the required information.
