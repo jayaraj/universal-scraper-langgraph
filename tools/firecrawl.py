@@ -3,17 +3,14 @@ from termcolor import colored
 from dotenv import load_dotenv
 from typing import Optional, Type
 from firecrawl import FirecrawlApp
-from tools.utils import ToolResponse
+from tools.utils import ScrapeInput, SearchInput, ToolResponse
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import BaseTool
 from langchain_core.messages import HumanMessage
-from langchain.pydantic_v1 import BaseModel, Field
+from langchain.pydantic_v1 import BaseModel
 from langchain_core.callbacks import CallbackManagerForToolRun
 
 load_dotenv()
-
-class ScrapeInput(BaseModel):
-  url: str = Field(description="""The URL to scrape.""")
 
 class ScrapeTool(BaseTool):
   name = "scrape"
@@ -25,7 +22,7 @@ class ScrapeTool(BaseTool):
         ToolResponse: The scraped content in markdown format, or an error message if scraping fails.
   """
   args_schema: Type[BaseModel] = ScrapeInput
-  return_direct: Type[BaseModel] = ToolResponse
+  return_direct: bool = True
   links_already_scraped: list[str] = []
 
   def __init__(self):
@@ -53,20 +50,19 @@ class ScrapeTool(BaseTool):
   def get_links_already_scraped(self):
     return self.links_already_scraped
 
-class SearchInput(BaseModel):
-  query: str = Field(description="""The search query.""")
-
 class SearchTool(BaseTool):
   name = "search"
   description = """
     Searches for information related to a specific entity using FirecrawlApp.
+
     Args:
         query (str): The search query.
+        
     Returns:
         ToolResponse: The search results, or an error message if the search fails.
   """
   args_schema: Type[BaseModel] = SearchInput
-  return_direct: Type[BaseModel] = ToolResponse
+  return_direct: bool = True
   llm: ChatOpenAI = None
   entity_name: str = ""
   data_points_to_search: List[str] = []

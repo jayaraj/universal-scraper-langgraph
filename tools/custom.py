@@ -1,28 +1,27 @@
 from typing import List
+from langchain.tools import tool
 from typing import Optional, Type
-from tools.utils import ToolResponse
+from tools.utils import ToolResponse, UpdateDataInput
 from langchain_core.tools import BaseTool
-from langchain.pydantic_v1 import BaseModel, Field
+from langchain.pydantic_v1 import BaseModel 
 from langchain_core.callbacks import CallbackManagerForToolRun
 
-class UpdateDataInput(BaseModel):
-  data_to_update: List[dict] = Field(description="""
-    The new data points found, which should follow the format:
-      [{"name": "xxx", "value": "yyy", "reference": "url"}]
-  """)
-
 class UpdateDataTool(BaseTool):
+  """Tool that updates state with new data points found."""
   name = "update_data"
   description = """
-    Update the state with new data points found.
-    Args:
-        data_to_update (List[dict]): The new data points found, which should follow the format 
-          [{"name": "xxx", "value": "yyy", "reference": "url"}]
-    Returns:
-        ToolResponse: A confirmation message with the updated data, or an error message if the update fails.
+  Update the state with new data points found.
+
+  Args:
+      data_to_update (List[dict]): The new data points found, which should follow the format 
+      [{"name": "xxx", "value": "yyy", "reference": "url"}]
+
+  Returns:
+      ToolResponse: A confirmation message with the updated data, or an error message if the update fails.
   """
-  args_schema: Type[BaseModel] = UpdateDataInput
-  return_direct: Type[BaseModel] = ToolResponse
+  args_schema: Optional[Type[BaseModel]] = UpdateDataInput
+  infer_schema: bool = True
+  return_direct: bool = True
   data_points: List[dict] = []
 
   def __init__(self, data_points_to_search: List[str] = []):
@@ -43,3 +42,18 @@ class UpdateDataTool(BaseTool):
   
   def get_data_points(self):
     return self.data_points
+  
+
+@tool("update_data", return_direct=True)
+def update_data_definition (data_to_update) -> ToolResponse:
+  """
+  Update the state with new data points found.
+
+  Args:
+      data_to_update (List[dict]): The new data points found, which should follow the format 
+      [{"name": "xxx", "value": "yyy", "reference": "url"}]
+
+  Returns:
+      ToolResponse: A confirmation message with the updated data, or an error message if the update fails.
+  """
+  return ToolResponse(result=f"updated data: {data_to_update}", context={"data_to_update": data_to_update})

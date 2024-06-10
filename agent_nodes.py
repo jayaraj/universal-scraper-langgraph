@@ -29,7 +29,6 @@ def call_tool(state, tool_executor):
   messages = state['messages']
   last_message = messages[-1]
   tool_messages = []
-  print(f"No of tool calls: {len(last_message.tool_calls)}")
   for tool_call in last_message.tool_calls:
     action = ToolInvocation(
       tool=tool_call["name"],
@@ -57,9 +56,12 @@ def optimise_messages(state, llm, model):
   if len(messages) > 10 or token_count_messages > 5000:
     latest_messages = messages [-5:]
     
-    if isinstance(latest_messages[0], ToolMessage):
-      latest_messages = latest_messages[1:]
-
+    for message in latest_messages:
+      if isinstance(message, ToolMessage):
+        latest_messages = latest_messages[1:]
+      else:
+        break
+        
     index = messages.index(latest_messages[0])
     early_messages = messages[:index]
 

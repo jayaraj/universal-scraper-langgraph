@@ -1,24 +1,23 @@
 import requests
 from typing import Optional, Type
-from tools.utils import ToolResponse
+from tools.utils import ScrapeInput, ToolResponse
 from langchain_core.tools import BaseTool
-from langchain.pydantic_v1 import BaseModel, Field
+from langchain.pydantic_v1 import BaseModel
 from langchain_core.callbacks import CallbackManagerForToolRun
-
-class ScrapeInput(BaseModel):
-  url: str = Field(description="""The URL to scrape.""")
 
 class ScrapeTool(BaseTool):
   name = "scrape"
   description = """
     Scrapes content from a specified URL using FirecrawlApp.
+
     Args:
         url (str): The URL to scrape.
+        
     Returns:
         ToolResponse: The scraped content in markdown format, or an error message if scraping fails.
   """
   args_schema: Type[BaseModel] = ScrapeInput
-  return_direct: Type[BaseModel] = ToolResponse
+  return_direct: bool = True
   links_already_scraped: list[str] = []
 
   def __init__(self):
