@@ -1,4 +1,4 @@
-# Universal Webscraper
+# Universal Webscraper AI
 
 <img src="https://github.com/jayaraj/universal-scraper-langgraph/raw/master/img/workflow.png" alt="Workflow" width="30%"/>
 
