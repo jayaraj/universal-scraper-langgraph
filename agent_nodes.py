@@ -53,7 +53,7 @@ def optimise_messages(state, llm, model):
   token_count_messages = len(encoding.encode(str(messages)))
   print(f"token count of messages: {token_count_messages} for {len(messages)} messages")
 
-  if len(messages) > 10 or token_count_messages > 5000:
+  if token_count_messages > 4000 and len(messages) > 7:
     latest_messages = messages [-5:]
     
     for message in latest_messages:
@@ -73,9 +73,10 @@ def optimise_messages(state, llm, model):
       {early_messages}
       -----
       
-      Above is the conversation history between the user and the AI, including actions the AI has already taken.
-      Please summarize the past actions taken so far, highlight any key information learned, and mention tasks that have been completed.
-      Remove any redundant information and keep the summary concise. remove unnessary scrapped content from the summary.
+      The above text contains the entire conversation history between the user and the AI, including actions taken by the AI.
+      Please provide a concise summary of the key actions taken, important information learned, and tasks completed so far.
+      Exclude any redundant details and unnecessary scraped content. Focus on highlighting critical points, ensuring clarity, 
+      and retaining any information required by the AI assistant for ongoing tasks.
 
       SUMMARY:""")
     summary = ""

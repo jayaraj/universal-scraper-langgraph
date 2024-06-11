@@ -84,7 +84,11 @@ def internet_search(llm, model: str, entity_name: str, data_points_to_search: Li
   inputs = {"messages": [system_message, internet_search], 
             "data_points": [{"name": dp, "value": None, "reference": None} for dp in data_points_to_search],
             "links_already_scraped": []}
-  config = {"recursion_limit": 100}
-  app.invoke(inputs,config=config)
+  config = {"recursion_limit": 50}
+  
+  try:
+    app.invoke(inputs,config=config)
+  except Exception as e:
+    print(f"error while invoking work flow: {e}")
 
   return {"data_points": update_data.get_data_points()}

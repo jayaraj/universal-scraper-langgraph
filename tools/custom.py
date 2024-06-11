@@ -35,12 +35,23 @@ class UpdateDataTool(BaseTool):
       for obj in data_to_update:
           if obj["name"] not in [dp["name"] for dp in self.data_points]:
              return ToolResponse(result="", context={"error": f"""{obj["name"]}  is not part of data_points_to_search : {[dp["name"] for dp in self.data_points]}, Please update with correct data points"""})
+          
           for dp in self.data_points:
-              if dp['name'] == obj['name'] and dp['value'] is None:
+              if dp['name'] == obj['name']:
                   dp["value"] = obj["value"]
                   if "reference" in obj:
                       dp["reference"] = obj["reference"]
-      return ToolResponse(result=f"updated data: {data_to_update}", context={})
+      
+      response = f"""
+      Updated data so for: 
+      {data_to_update}
+      -----------------
+
+      Required data points to complete the task: {[dp for dp in self.data_points if dp["value"] is None]}
+      Please update search and scrape to find the remaining data points.
+      Stop the search or scrape if all required data points are found or if no data points are found in the search list.
+      """
+      return ToolResponse(result=f"updated data: {response}", context={})
   
   def get_data_points(self):
     return self.data_points
