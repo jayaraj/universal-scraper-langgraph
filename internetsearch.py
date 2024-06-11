@@ -16,21 +16,6 @@ def internet_search(llm, model: str, entity_name: str, data_points_to_search: Li
 
   app = workflow(llm=llm, model=model, tool_executor=tool_executor)
 
-  # system_message = SystemMessage(content="""
-  #   You are a world class web researcher, you are great at finding information on the internet;
-  #   You will keep scraping url based on information you received until information is found;
-
-  #   You will try as hard as possible to search for all sorts of different query & source to find information; 
-  #   You will make sure the information is accurate and up to date or latest information;
-  #   if one search query didn't return any result, try another one; 
-  #   You do not stop until all information are found, it is very important we find all information;
-  #   Whenever you found required data points, use "update_data" function to save the data point, before proceeding to next query;
-    
-  #   You only answer questions based on results from scraper, do not make things up;
-  #   You never ask user for inputs or permissions, you just do your job and provide the results;
-  #   You NEVER make more than two tool_calls in a single turn;
-  # """)
-
   system_message = SystemMessage(content="""
     You are a world-class web researcher and scraper. Your goal is to find comprehensive and up-to-date 
     information on a given entity by leveraging the following tools:
