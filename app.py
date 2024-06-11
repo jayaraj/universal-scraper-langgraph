@@ -17,8 +17,7 @@ def get_filename():
 
 def main():
   load_dotenv()
-  # GPT_MODEL = "gpt-4o"
-  GPT_MODEL = "gpt-3.5-turbo"
+  GPT_MODEL = "gpt-4o"
   data_points = ["name", "website", "description", "address", "phone", "email", "founders", "ceo"]
   llm = ChatOpenAI(model=GPT_MODEL, temperature=0, streaming=True)
 

@@ -38,7 +38,7 @@ class UpdateDataTool(BaseTool):
           
           for dp in self.data_points:
               if dp['name'] == obj['name']:
-                  dp["value"] = obj["value"]
+                  dp["value"] = f"""{dp["value"]}; {obj["value"]}"""
                   if "reference" in obj:
                       dp["reference"] = obj["reference"]
       
