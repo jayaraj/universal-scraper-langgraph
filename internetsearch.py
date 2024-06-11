@@ -8,7 +8,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
 def internet_search(llm, model: str, entity_name: str, data_points_to_search: List[str]) -> (dict[str, Any] | Any):
-  # search = SearchTool(llm, entity_name, data_points_to_search)
   scrape = ScrapeTool()
   update_data = UpdateDataTool(data_points_to_search)
   search = SearchTool()
