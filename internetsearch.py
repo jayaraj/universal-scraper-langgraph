@@ -68,7 +68,7 @@ def internet_search(llm, model: str, entity_name: str, data_points_to_search: Li
   inputs = {"messages": [system_message, internet_search], 
             "data_points": [{"name": dp, "value": None, "reference": None} for dp in data_points_to_search],
             "links_already_scraped": []}
-  config = {"recursion_limit": 50}
+  config = {"recursion_limit": 100}
   
   try:
     app.invoke(inputs,config=config)
