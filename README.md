@@ -1,6 +1,6 @@
 # Universal Webscraper AI
 
-<img src="https://github.com/jayaraj/universal-scraper-langgraph/raw/master/img/workflow.png" alt="Workflow" width="30%"/>
+<img src="https://github.com/jayaraj/universal-scraper-langgraph/raw/master/img/workflow.png" alt="Workflow" width="30%"/><img align="right" src="https://github.com/jayaraj/universal-scraper-langgraph/raw/master/img/scraping.gif" alt="Demo" width="50%"/>
 
 ## Introduction
 
