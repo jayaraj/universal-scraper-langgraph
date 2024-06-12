@@ -3,7 +3,7 @@ from langchain.tools import tool
 from typing import Optional, Type
 from tools.utils import ToolResponse, UpdateDataInput
 from langchain_core.tools import BaseTool
-from langchain.pydantic_v1 import BaseModel 
+from langchain_core.pydantic_v1 import BaseModel 
 from langchain_core.callbacks import CallbackManagerForToolRun
 
 class UpdateDataTool(BaseTool):
@@ -50,7 +50,7 @@ class UpdateDataTool(BaseTool):
       {data_to_update}
       -----------------
 
-      Required data points to complete the task: {[dp for dp in self.data_points if dp["value"] is None]}
+      Required data points to complete the task: {[dp["name"] for dp in self.data_points if dp["value"] is None]}
       Please update search and scrape to find the remaining data points.
       Stop the search or scrape if all required data points are found or if no data points are found in the search list.
       """

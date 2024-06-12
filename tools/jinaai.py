@@ -2,7 +2,7 @@ import requests
 from typing import Optional, Type
 from tools.utils import ScrapeInput, ToolResponse
 from langchain_core.tools import BaseTool
-from langchain.pydantic_v1 import BaseModel
+from langchain_core.pydantic_v1 import BaseModel
 from langchain_core.callbacks import CallbackManagerForToolRun
 
 class ScrapeTool(BaseTool):

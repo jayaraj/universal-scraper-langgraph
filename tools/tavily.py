@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from typing import Optional, Type
 from tools.utils import SearchInput, ToolResponse
 from langchain_core.tools import BaseTool
-from langchain.pydantic_v1 import BaseModel
+from langchain_core.pydantic_v1 import BaseModel
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_community.tools.tavily_search import TavilySearchResults
 
